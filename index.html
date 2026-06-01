@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IconForge - App Icon & Favicon Generator</title>
+  <meta name="description" content="Upload one image, get all app icons and favicons. iOS, Android, Web, PWA - 30+ sizes in one click. Free, no signup, 100% client-side.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🔨</text></svg>">
+  <style>
+    :root{--bg:#0a0a0b;--surface:#141416;--surface2:#1c1c1f;--border:#2a2a2e;--text:#e4e4e7;--text2:#a1a1aa;--accent:#6d5aff;--accent2:#8b7aff;--green:#22c55e;--radius:12px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+    a{color:var(--accent2);text-decoration:none}
+    .container{max-width:1100px;margin:0 auto;padding:0 24px}
+    header{border-bottom:1px solid var(--border);padding:20px 0;position:sticky;top:0;z-index:100;background:rgba(10,10,11,0.85);backdrop-filter:blur(12px)}
+    header .container{display:flex;align-items:center;justify-content:space-between}
+    .logo{font-size:22px;font-weight:700;display:flex;align-items:center;gap:10px}
+    .logo span{color:var(--accent)}
+    .hero{text-align:center;padding:60px 0 40px}
+    .hero h1{font-size:48px;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;line-height:1.2}
+    .hero p{color:var(--text2);font-size:18px;max-width:560px;margin:0 auto 32px}
+    .upload-zone{border:2px dashed var(--border);border-radius:16px;padding:60px 40px;text-align:center;cursor:pointer;transition:all .3s;background:var(--surface)}
+    .upload-zone:hover{border-color:var(--accent);background:rgba(109,90,255,0.05)}
+    #fileInput{display:none}
+    .editor{display:none;padding:40px 0 60px}
+    .editor.active{display:block}
+    .editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px}
+    @media(max-width:768px){.editor-grid{grid-template-columns:1fr}.hero h1{font-size:32px}}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+    .card h3{font-size:16px;margin-bottom:16px}
+    .control-group{margin-bottom:16px}
+    .control-group label{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:6px}
+    .control-group .val{color:var(--text);font-weight:600}
+    input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--surface2);outline:none}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg)}
+    input[type=color]{width:100%;height:40px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;padding:4px}
+    select{width:100%;padding:8px 12px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;font-size:14px}
+    .preview-area{display:flex;flex-direction:column;align-items:center;gap:20px}
+    .preview-main{width:200px;height:200px;border-radius:44px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+    .preview-main canvas{width:100%;height:100%}
+    .preview-sizes{display:flex;gap:16px;align-items:flex-end}
+    .preview-sizes .item{display:flex;flex-direction:column;align-items:center;gap:6px}
+    .preview-sizes .item span{font-size:11px;color:var(--text2)}
+    .preview-sizes canvas{border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+    .platform-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .platform-tab{padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;font-size:14px;transition:all .2s;color:var(--text2)}
+    .platform-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .platform-tab:hover:not(.active){border-color:var(--accent);color:var(--text)}
+    .size-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+    .size-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .2s}
+    .size-item:hover{border-color:var(--accent);transform:translateY(-2px)}
+    .size-item canvas{border-radius:6px}
+    .size-item .label{font-size:12px;color:var(--text2);text-align:center}
+    .size-item .dim{font-size:11px;color:var(--text);font-weight:600}
+    .btn{padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+    .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+    .btn-secondary:hover{border-color:var(--accent)}
+    .btn-lg{padding:16px 32px;font-size:16px}
+    .actions{display:flex;gap:12px;flex-wrap:wrap}
+    .code-block{background:#0d0d0f;border:1px solid var(--border);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;overflow-x:auto;position:relative;color:#a1a1aa;line-height:1.7;margin-top:16px}
+    .code-block .copy-btn{position:absolute;top:8px;right:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px}
+    .code-block .copy-btn:hover{border-color:var(--accent);color:var(--text)}
+    .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:10px;font-weight:600;opacity:0;transition:all .3s;z-index:1000}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    footer{border-top:1px solid var(--border);padding:32px 0;text-align:center;color:var(--text2);font-size:13px}
+    .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:200;flex-direction:column;gap:16px}
+    .loading-overlay.active{display:flex}
+    .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <header><div class="container"><div class="logo">🔨 <span>Icon</span>Forge</div><span style="background:var(--surface2);padding:4px 12px;border-radius:20px;font-size:12px;color:var(--text2);border:1px solid var(--border)">100% Client-Side • Free</span></div></header>
+  <div class="container">
+    <section class="hero" id="hero">
+      <h1>All App Icons in One Click</h1>
+      <p>Upload one image, get 30+ icons for iOS, Android, Web and PWA. Zero upload, runs in your browser.</p>
+      <div class="upload-zone" id="uploadZone">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <h3>Drop your image here</h3>
+        <p>or click to browse. PNG, JPG, SVG, WEBP. Best: 1024x1024</p>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+    </section>
+    <section class="editor" id="editor">
+      <div class="editor-grid">
+        <div class="card">
+          <h3>Preview</h3>
+          <div class="preview-area"><div class="preview-main"><canvas id="pvCanvas" width="200" height="200"></canvas></div><div class="preview-sizes" id="pvSizes"></div></div>
+        </div>
+        <div class="card">
+          <h3>Settings</h3>
+          <div class="control-group"><label>BG Color <span class="val" id="bgCV">#000000</span></label><input type="color" id="bgC" value="#000000"></div>
+          <div class="control-group"><label>Padding <span class="val" id="pdV">10%</span></label><input type="range" id="pd" min="0" max="40" value="10"></div>
+          <div class="control-group"><label>Border Radius <span class="val" id="rdV">22%</span></label><input type="range" id="rd" min="0" max="50" value="22"></div>
+          <div class="control-group"><label>Type</label><select id="bgT"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="transparent">Transparent</option></select></div>
+          <div class="control-group" id="geG" style="display:none"><label>Gradient End <span class="val" id="geV">#6d5aff</span></label><input type="color" id="ge" value="#6d5aff"></div>
+          <div class="control-group"><label>Angle <span class="val" id="gaV">135deg</span></label><input type="range" id="ga" min="0" max="360" value="135"></div>
+          <div style="margin-top:20px" class="actions"><button class="btn btn-secondary" onclick="_reset()">Upload New</button></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:24px">
+        <div class="platform-tabs" id="tabs">
+          <div class="platform-tab active" data-p="all">All (30+)</div>
+          <div class="platform-tab" data-p="ios">iOS (7)</div>
+          <div class="platform-tab" data-p="android">Android (6)</div>
+          <div class="platform-tab" data-p="web">Web (9)</div>
+          <div class="platform-tab" data-p="pwa">PWA (6)</div>
+          <div class="platform-tab" data-p="mac">macOS (4)</div>
+        </div>
+        <div class="size-grid" id="grid"></div>
+      </div>
+      <div class="card" style="margin-bottom:24px">
+        <h3>Export</h3>
+        <div class="actions">
+          <button class="btn btn-primary btn-lg" onclick="_zip()">Download ZIP</button>
+          <button class="btn btn-secondary" onclick="_manifest()">manifest.json</button>
+          <button class="btn btn-secondary" onclick="_html()">HTML Tags</button>
+        </div>
+        <div class="code-block"><button class="copy-btn" onclick="_copy()">Copy</button><pre id="codeEl"></pre></div>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="loading-overlay" id="loading"><div class="spinner"></div><span>Generating...</span></div>
+  <footer><div class="container"><p>IconForge - Free App Icon Generator - <a href="https://github.com/tyr1105/iconforge">GitHub</a></p><p style="margin-top:8px">Your images never leave your browser.</p></div></footer>
+  <script>
+(function(){
+  var I={ios:[{n:"App Store",s:1024,f:"AppIcon-1024.png"},{n:"iPhone @3x",s:180,f:"AppIcon-180.png"},{n:"iPhone @2x",s:120,f:"AppIcon-120.png"},{n:"iPad @2x",s:152,f:"AppIcon-152.png"},{n:"iPad Pro",s:167,f:"AppIcon-167.png"},{n:"Settings",s:58,f:"AppIcon-58.png"},{n:"Notification",s:40,f:"AppIcon-40.png"}],android:[{n:"xxxhdpi",s:192,f:"mipmap-xxxhdpi/ic_launcher.png"},{n:"xxhdpi",s:144,f:"mipmap-xxhdpi/ic_launcher.png"},{n:"xhdpi",s:96,f:"mipmap-xhdpi/ic_launcher.png"},{n:"hdpi",s:72,f:"mipmap-hdpi/ic_launcher.png"},{n:"mdpi",s:48,f:"mipmap-mdpi/ic_launcher.png"},{n:"Play Store",s:512,f:"ic_launcher-playstore.png"}],web:[{n:"Favicon 32",s:32,f:"favicon-32x32.png"},{n:"Favicon 16",s:16,f:"favicon-16x16.png"},{n:"Apple Touch",s:180,f:"apple-touch-icon.png"},{n:"Mstile",s:150,f:"mstile-150x150.png"},{n:"OG Image",s:512,f:"og-image.png"},{n:"Twitter",s:440,f:"twitter-card.png"},{n:"512px",s:512,f:"android-chrome-512x512.png"},{n:"192px",s:192,f:"android-chrome-192x192.png"},{n:"ICO",s:48,f:"favicon.ico"}],pwa:[{n:"192x192",s:192,f:"pwa-192x192.png"},{n:"512x512",s:512,f:"pwa-512x512.png"},{n:"Mask 192",s:192,f:"maskable-192.png",m:1},{n:"Mask 512",s:512,f:"maskable-512.png",m:1},{n:"Shortcut",s:96,f:"shortcut-96.png"},{n:"Splash",s:1024,f:"splash-bg.png"}],mac:[{n:"512@2x",s:1024,f:"mac-1024.png"},{n:"512",s:512,f:"mac-512.png"},{n:"256@2x",s:512,f:"mac-512@2x.png"},{n:"128@2x",s:256,f:"mac-256@2x.png"}]};
+  var si=null,cp="all",bl={};
+  var uz=document.getElementById("uploadZone"),fi=document.getElementById("fileInput");
+  uz.onclick=function(){fi.click()};
+  uz.ondragover=function(e){e.preventDefault();uz.style.borderColor="var(--accent)"};
+  uz.ondragleave=function(){uz.style.borderColor=""};
+  uz.ondrop=function(e){e.preventDefault();uz.style.borderColor="";var f=e.dataTransfer.files[0];if(f&&f.type.startsWith("image/"))lf(f)};
+  fi.onchange=function(){if(fi.files[0])lf(fi.files[0])};
+  function lf(f){var r=new FileReader;r.onload=function(e){var img=new Image;img.onload=function(){si=img;show()};img.src=e.target.result};r.readAsDataURL(f)}
+  function show(){document.getElementById("hero").style.display="none";document.getElementById("editor").classList.add("active");up();rg();ga()}
+  window._reset=function(){si=null;bl={};document.getElementById("editor").classList.remove("active");document.getElementById("hero").style.display="";fi.value=""};
+  function b(el,fn){el.oninput=fn;el.onchange=fn}
+  var bgC=document.getElementById("bgC"),pd=document.getElementById("pd"),rd=document.getElementById("rd"),bgT=document.getElementById("bgT"),ge=document.getElementById("ge"),ga2=document.getElementById("ga");
+  b(bgC,function(){document.getElementById("bgCV").textContent=bgC.value;up();rg();ga()});
+  b(pd,function(){document.getElementById("pdV").textContent=pd.value+"%";up();rg();ga()});
+  b(rd,function(){document.getElementById("rdV").textContent=rd.value+"%";up();rg();ga()});
+  b(bgT,function(){document.getElementById("geG").style.display=bgT.value==="gradient"?"":"none";up();rg();ga()});
+  b(ge,function(){document.getElementById("geV").textContent=ge.value;up();rg();ga()});
+  b(ga2,function(){document.getElementById("gaV").textContent=ga2.value+"deg";up();rg();ga()});
+  document.querySelectorAll(".platform-tab").forEach(function(t){t.onclick=function(){document.querySelector(".platform-tab.active").classList.remove("active");t.classList.add("active");cp=t.dataset.p;rg()}});
+  function rr(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r)}
+  function gc(sz,mask){var c=document.createElement("canvas");c.width=sz;c.height=sz;var x=c.getContext("2d");var rv=+rd.value/100,pv=+pd.value/100,cr=sz*rv;if(bgT.value!=="transparent"){x.beginPath();rr(x,0,0,sz,sz,cr);x.closePath();if(bgT.value==="gradient"){var a=+ga2.value*Math.PI/180,l=sz*.7;var g=x.createLinearGradient(sz/2-Math.cos(a)*l,sz/2-Math.sin(a)*l,sz/2+Math.cos(a)*l,sz/2+Math.sin(a)*l);g.addColorStop(0,bgC.value);g.addColorStop(1,ge.value);x.fillStyle=g}else x.fillStyle=bgC.value;x.fill();x.clip()}if(si){var pp=sz*pv*(mask?.5:1),is2=sz-pp*2,ar=si.width/si.height,dw,dh,dx,dy;if(mask){dw=dh=is2;dx=dy=pp}else{if(ar>1){dh=is2;dw=is2*ar}else{dw=is2;dh=is2/ar}dx=(sz-dw)/2;dy=(sz-dh)/2}x.drawImage(si,dx,dy,dw,dh)}return c}
+  function up(){var x=document.getElementById("pvCanvas").getContext("2d");x.drawImage(gc(200),0,0);var ps=document.getElementById("pvSizes");ps.innerHTML="";[64,32,16].forEach(function(s){var c=gc(s);c.style.width=s+"px";c.style.height=s+"px";var d=document.createElement("div");d.className="item";d.appendChild(c);var l=document.createElement("span");l.textContent=s+"x"+s;d.appendChild(l);ps.appendChild(d)})}
+  function ga3(){bl={};for(var p in I)for(var i=0;i<I[p].length;i++){var ic=I[p][i];if(ic.f.endsWith(".ico"))continue;bl[ic.f]=gc(ic.s,ic.m)}uc()}
+  window.ga=ga3;
+  function rg(){var g=document.getElementById("grid");g.innerHTML="";var ps=cp==="all"?Object.keys(I):[cp];ps.forEach(function(p){I[p].forEach(function(ic){var it=document.createElement("div");it.className="size-item";var ds=Math.min(ic.s,64);var c=gc(ds,ic.m);c.style.width=ds+"px";c.style.height=ds+"px";it.appendChild(c);var l=document.createElement("div");l.className="label";l.textContent=ic.n;it.appendChild(l);var d=document.createElement("div");d.className="dim";d.textContent=ic.s+"x"+ic.s;it.appendChild(d);it.onclick=function(){dl(ic)};g.appendChild(it)})})}
+  function dl(ic){var c=bl[ic.f]||gc(ic.s,ic.m);var a=document.createElement("a");a.download=ic.f.split("/").pop();a.href=c.toDataURL("image/png");a.click();toast("Downloaded: "+ic.f.split("/").pop())}
+  window._zip=async function(){var ld=document.getElementById("loading");ld.classList.add("active");try{if(!window.JSZip){var sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";document.head.appendChild(sc);await new Promise(function(r,j){sc.onload=r;sc.onerror=j})}var z=new JSZip,fs={};for(var fn in bl){var pts=fn.split("/");if(pts.length>1){var fl=pts.slice(0,-1).join("/");if(!fs[fl]){z.folder(fl);fs[fl]=1}}z.file(fn,bl[fn].toDataURL("image/png").split(",")[1],{base64:true})}z.file("manifest.json",JSON.stringify(gm(),null,2));z.file("favicon-tags.html",gh());z.file("README.md","# IconForge Icons
+Generated by IconForge
+
+## Files
+- iOS: 7 sizes
+- Android: 6 sizes
+- Web: 9 sizes
+- PWA: 6 sizes
+- macOS: 4 sizes
+");var b=await z.generateAsync({type:"blob"});var a=document.createElement("a");a.download="iconforge-icons.zip";a.href=URL.createObjectURL(b);a.click();toast("ZIP with "+Object.keys(bl).length+" icons!")}catch(e){toast("Error: "+e.message)}finally{ld.classList.remove("active")}};
+  window._manifest=function(){var b=new Blob([JSON.stringify(gm(),null,2)],{type:"application/json"});var a=document.createElement("a");a.download="manifest.json";a.href=URL.createObjectURL(b);a.click();toast("manifest.json!")};
+  window._html=function(){var b=new Blob([gh()],{type:"text/html"});var a=document.createElement("a");a.download="favicon-tags.html";a.href=URL.createObjectURL(b);a.click();toast("HTML tags!")};
+  function gm(){return{name:"My App",short_name:"My App",start_url:"/",display:"standalone",background_color:bgC.value,theme_color:bgC.value,icons:[{src:"pwa-192x192.png",sizes:"192x192",type:"image/png"},{src:"pwa-512x512.png",sizes:"512x512",type:"image/png"},{src:"maskable-192.png",sizes:"192x192",type:"image/png",purpose:"maskable"},{src:"maskable-512.png",sizes:"512x512",type:"image/png",purpose:"maskable"}]}}
+  function gh(){return"<!-- Favicon -->
+<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"favicon-32x32.png\">
+<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"apple-touch-icon.png\">
+<link rel=\"manifest\" href=\"manifest.json\">
+<meta name=\"theme-color\" content=\""+bgC.value+"\">"}
+  function uc(){document.getElementById("codeEl").textContent='<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="'+bgC.value+'">'}
+  window._copy=function(){navigator.clipboard.writeText(gh()).then(function(){toast("Copied!")})};
+  function toast(m){var t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2500)}
+})();
+  </script>
+</body>
+</html>
